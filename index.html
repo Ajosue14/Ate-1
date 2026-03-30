@@ -99,6 +99,7 @@ button {
   <div class="scroll" id="listaDistritos"></div>
 
   <button onclick="exportar()">📊 EXPORTAR</button>
+<button onclick="limpiarFiltros()">🧹 LIMPI</button>
 
   <div class="contador" id="contador"></div>
   <div class="resumen" id="resumen"></div>
@@ -224,6 +225,20 @@ function soloHoy(){
   const dias=["D","L","M","X","J","V","S"];
   const hoy=dias[new Date().getDay()];
   document.querySelectorAll(".panel input[value]").forEach(i=>i.checked=i.value===hoy);
+  aplicarFiltros();
+}
+function limpiarFiltros() {
+  // ✅ Limpiar búsqueda
+  document.getElementById("buscador").value = "";
+
+  // ✅ Marcar todos los distritos
+  document.querySelectorAll("#listaDistritos input[type=checkbox]")
+    .forEach(cb => cb.checked = true);
+
+  // ✅ Desmarcar todos los días
+  document.querySelectorAll(".panel-frecuencia input[type=checkbox]")
+    .forEach(cb => cb.checked = false);
+
   aplicarFiltros();
 }
 (function marcarDiaActual(){
