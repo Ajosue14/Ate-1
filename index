@@ -104,13 +104,15 @@ Papa.parse("ATE 1.csv", {
     tiendas = res.data
       .filter(t => t.LATITUT && t.LONGITUTD)
       .map(t => ({
-        nombre: t["Customer Name/Solic"],
-        distrito: t.City,
-        direccion: t.Calle,
-        freq: limpiarFreq(t.FRECUENCIA),
-        lat: +t.LATITUT,
-        lng: +t.LONGITUTD
-      }));
+  codigo: t["Customer Account # / Cliente"], // ✅ CÓDIGO CLIENTE
+  nombre: t["Customer Name/Solic"],
+  distrito: t.City,
+  direccion: t.Calle,
+  freq: limpiarFreq(t.FRECUENCIA),
+  lat: +t.LATITUT,
+  lng: +t.LONGITUTD
+}));
+``
     crearDistritos();
     aplicarFiltros();
   }
@@ -141,7 +143,13 @@ function pintar(data) {
   capa.clearLayers();
   data.forEach(t=>{
     L.marker([t.lat,t.lng], {icon:icono(colorDistrito(t.distrito))})
-      .bindPopup(`<b>${t.nombre}</b><br>${t.distrito}<br>Freq: ${t.freq}<br>${t.direccion}`)
+      .bindPopup(`
+  <b>${t.nombre}</b><br>
+  <b>Código cliente:</b> ${t.codigo}<br>
+  <b>Distrito:</b> ${t.distrito}<br>
+  <b>Frecuencia:</b> ${t.freq}<br>
+  ${t.direccion}
+`)
       .addTo(capa);
   });
   document.getElementById("contador").innerText = `Tiendas visibles: ${data.length}`;
