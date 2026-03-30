@@ -7,7 +7,12 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-
+.dia-hoy {
+  font-weight: bold;
+  background: #e6f2ff;
+  border-radius: 4px;
+  padding: 2px 4px;
+}
 <style>
 ```css
 body { margin:0; font-family: Arial, sans-serif; }
@@ -96,7 +101,7 @@ button {
   <label><input type="checkbox" value="M"> Martes</label><br>
   <label><input type="checkbox" value="X"> Miércoles</label><br>
   <label><input type="checkbox" value="J"> Jueves</label><br>
-  <label><input type="checkbox" value="V"> Viernes</label><br>
+  <label data-dia="V"><input type="checkbox" value="V"> Viernes</label><br>
   <label><input type="checkbox" value="S"> Sábado</label><br>
 
   <button onclick="soloHoy()">📍 SOLO HOY</button>
@@ -208,7 +213,12 @@ function soloHoy(){
   document.querySelectorAll(".panel input[value]").forEach(i=>i.checked=i.value===hoy);
   aplicarFiltros();
 }
-
+(function marcarDiaActual(){
+  const dias = ["D","L","M","X","J","V","S"];
+  const hoy = dias[new Date().getDay()];
+  const label = document.querySelector(`label[data-dia="${hoy}"]`);
+  if (label) label.classList.add("dia-hoy");
+})();
 function exportar(){
   let csv="Codigo,Nombre,Distrito,Frecuencia,Direccion\n";
   visibles.forEach(t=>{
