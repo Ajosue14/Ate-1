@@ -9,7 +9,9 @@
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
+```css
 body { margin:0; font-family: Arial, sans-serif; }
+  
 #map {
   position: fixed;
   top: 0;
@@ -18,7 +20,6 @@ body { margin:0; font-family: Arial, sans-serif; }
   bottom: 0;
   z-index: 1;
 }
-``
 
 .panel {
   position: absolute;
@@ -27,25 +28,29 @@ body { margin:0; font-family: Arial, sans-serif; }
   background: white;
   width: 300px;
   padding: 12px;
-  z-index: 1000;   /* 👈 más alto que el mapa */
+  z-index: 1000;
   border-radius: 6px;
   box-shadow: 0 3px 8px rgba(0,0,0,.3);
   font-size: 13px;
 }
-``
+
 .panel-frecuencia {
   position: absolute;
   top: 10px;
   right: 10px;
-  left: auto;      /* 👈 IMPORTANTE */
+  left: auto;
   width: 200px;
   z-index: 1000;
 }
-``
+
 .panel h3 { margin:8px 0; font-size:14px; }
 .scroll { max-height:120px; overflow:auto; border:1px solid #ccc; padding:5px; }
 
-input[type=text] { width:100%; padding:5px; margin-bottom:6px; }
+input[type=text] {
+  width:100%;
+  padding:5px;
+  margin-bottom:6px;
+}
 
 button {
   width:100%;
@@ -69,14 +74,11 @@ button {
 <body>
 
 <div class="panel">
-  <div class="panel">
   <h3>🔎 Buscar cliente / código</h3>
   <input type="text" id="buscador" placeholder="Código o nombre...">
 
   <h3>🏙 Distritos</h3>
   <div class="scroll" id="listaDistritos"></div>
-
-  <!-- ⛔ AQUÍ YA NO VA FRECUENCIA -->
 
   <button onclick="exportar()">📊 EXPORTAR</button>
 
@@ -85,6 +87,7 @@ button {
 
   <small>Uso Comercial | Fuente: Distribución</small>
 </div>
+``
 <!-- PANEL DE FRECUENCIA -->
 <div class="panel panel-frecuencia">
   <h3>📅 Frecuencia</h3>
