@@ -52,27 +52,34 @@ button {
 <body>
 
 <div class="panel">
+  <div class="panel">
   <h3>🔎 Buscar cliente / código</h3>
   <input type="text" id="buscador" placeholder="Código o nombre...">
 
   <h3>🏙 Distritos</h3>
   <div class="scroll" id="listaDistritos"></div>
 
-  <h3>📅 Frecuencia</h3>
-  <label><input type="checkbox" value="L"> L</label>
-  <label><input type="checkbox" value="M"> M</label>
-  <label><input type="checkbox" value="X"> X</label>
-  <label><input type="checkbox" value="J"> J</label>
-  <label><input type="checkbox" value="V"> V</label>
-  <label><input type="checkbox" value="S"> S</label>
+  <!-- ⛔ AQUÍ YA NO VA FRECUENCIA -->
 
-  <button onclick="soloHoy()">📍 SOLO HOY</button>
   <button onclick="exportar()">📊 EXPORTAR</button>
 
   <div class="contador" id="contador"></div>
   <div class="resumen" id="resumen"></div>
 
   <small>Uso Comercial | Fuente: Distribución</small>
+</div>
+<!-- PANEL DE FRECUENCIA -->
+<div class="panel panel-frecuencia">
+  <h3>📅 Frecuencia</h3>
+
+  <label><input type="checkbox" value="L"> Lunes</label><br>
+  <label><input type="checkbox" value="M"> Martes</label><br>
+  <label><input type="checkbox" value="X"> Miércoles</label><br>
+  <label><input type="checkbox" value="J"> Jueves</label><br>
+  <label><input type="checkbox" value="V"> Viernes</label><br>
+  <label><input type="checkbox" value="S"> Sábado</label><br>
+
+  <button onclick="soloHoy()">📍 SOLO HOY</button>
 </div>
 
 <div id="map"></div>
