@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Mapa Comercial y Distribución</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+<style>
+body { margin:0; font-family: Arial, sans-serif; }
+#map { height:100vh; }
+
+.panel {
+  position:absolute;
+  top:10px;
+  left:10px;
+  background:#fff;
+  padding:12px;
+  border-radius:6px;
+  width:280px;
+  z-index:999;
+  box-shadow:0 3px 8px rgba(0,0,0,.3);
+  font-size:13px;
+}
+
+.panel h3 { font-size:14px; margin:8px 0; }
+.scroll { max-height:130px; overflow-y:auto; border:1px solid #ccc; padding:5px; }
+
+button {
+  width:100%;
+  margin-top:5px;
+  padding:6px;
+  cursor:pointer;
+}
+.contador {
+  margin-top:6px;
+  font-weight:bold;
+  color:#0a4;
+}
+</style>
+</head>
+
+<body>
+
+<div class="panel">
+  <h3>🏙 Distritos</h3>
+  <div class="scroll" id="distritos"></div>
+
+  <h3>📅 Frecuencia</h3>
+  <label><input type="checkbox" value="L"> L</label>
+  <label><input type="checkbox" value="M"> M</label>
+  <label><input type="checkbox" value="X"> X</label>
+  <label><input type="checkbox" value="J"> J</label>
+  <label><input type="checkbox" value="V"> V</label>
+  <label><input type="checkbox" value="S"> S</label>
+
+  <button onclick="soloHoy()">📍 SOLO HOY</button>
+  <button onclick="exportar()">📊 EXPORTAR FILTRADO</button>
+
+  <div class="contador" id="contador"></div>
+  <small>Uso Comercial | Fuente: Distribución</small>
+</div>
+
+<div id="map"></div>
+
+<script>
+const map = L.map('map').setView([-12.05, -77.03], 12);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+const capa = L.layerGroup().addTo(map);
+let tiendas = [];
+let visibles = [];
+let colores = {};
+let colorIndex = 0;
+
+const palette = ["red","blue","green","orange","violet","gold","grey","black"];
+
+function colorDistrito(d) {
+  if (!colores[d]) {
+    colores[d] = palette[colorIndex % palette.length];
+    colorIndex++;
+  }
+  return colores[d];
+}
+
+function icono(color) {
+  return L.icon({
+    iconUrl:`https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-${color}.png`,
+    shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+    iconSize:[25,41], iconAnchor:[12,41]
+  });
+}
+
+function limpiarFreq(f) {
+  return (f || "").replaceAll("/", "");
+}
+
+Papa.parse("ATE 1.csv", {
+  download:true,
+  header:true,
+  complete:(res)=>{
+    tiendas = res.data
+      .filter(t => t.LATITUT && t.LONGITUTD)
+      .map(t => ({
+        nombre: t["Customer Name/Solic"],
+        distrito: t.City,
+        direccion: t.Calle,
+        freq: limpiarFreq(t.FRECUENCIA),
+        lat: +t.LATITUT,
+        lng: +t.LONGITUTD
+      }));
+    crearDistritos();
+    aplicarFiltros();
+  }
+});
+
+function crearDistritos() {
+  const cont = document.getElementById("distritos");
+  [...new Set(tiendas.map(t=>t.distrito))].sort().forEach(d=>{
+    cont.innerHTML += `<label><input type="checkbox" checked value="${d}"> ${d}</label><br>`;
+  });
+  cont.querySelectorAll("input").forEach(i=>i.onchange=aplicarFiltros);
+  document.querySelectorAll(".panel input[value]").forEach(i=>i.onchange=aplicarFiltros);
+}
+
+function aplicarFiltros() {
+  const dist = [...document.querySelectorAll("#distritos input:checked")].map(i=>i.value);
+  const dias = [...document.querySelectorAll(".panel input[value=L],.panel input[value=M],.panel input[value=X],.panel input[value=J],.panel input[value=V],.panel input[value=S]")]
+    .filter(i=>i.checked).map(i=>i.value);
+
+  visibles = tiendas.filter(t => dist.includes(t.distrito));
+  if (dias.length)
+    visibles = visibles.filter(t => dias.some(d=>t.freq.includes(d)));
+
+  pintar(visibles);
+}
+
+function pintar(data) {
+  capa.clearLayers();
+  data.forEach(t=>{
+    L.marker([t.lat,t.lng], {icon:icono(colorDistrito(t.distrito))})
+      .bindPopup(`<b>${t.nombre}</b><br>${t.distrito}<br>Freq: ${t.freq}<br>${t.direccion}`)
+      .addTo(capa);
+  });
+  document.getElementById("contador").innerText = `Tiendas visibles: ${data.length}`;
+}
+
+function soloHoy() {
+  const dias = ["D","L","M","X","J","V","S"];
+  const hoy = dias[new Date().getDay()];
+  document.querySelectorAll(".panel input[value]").forEach(i=>i.checked = i.value===hoy);
+  aplicarFiltros();
+}
+
+function exportar() {
+  let csv = "Nombre,Distrito,Frecuencia,Direccion\n";
+  visibles.forEach(t=>{
+    csv += `"${t.nombre}","${t.distrito}","${t.freq}","${t.direccion}"\n`;
+  });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"}));
+  a.download = "tiendas_filtradas.csv";
+  a.click();
+}
+</script>
+
+</body>
+</html>
