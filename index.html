@@ -86,9 +86,14 @@ button {
   border-radius: 4px;
   padding: 2px 4px;
 }
-  #leyenda {
+ #leyenda {
   margin-top: 6px;
-  font-size: 12px;
+  font-size: 11px;
+  max-height: 90px;       /* 🔑 limita el tamaño */
+  overflow-y: auto;       /* 🔑 scroll */
+  border: 1px solid #eee;
+  padding: 4px;
+  border-radius: 4px;
 }
 
 .item-leyenda {
