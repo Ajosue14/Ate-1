@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>Mapa Comercial y Distribución</title>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
@@ -16,28 +16,35 @@ body { margin:0; font-family: Arial, sans-serif; }
   position:absolute;
   top:10px;
   left:10px;
-  background:#fff;
+  background:white;
+  width:300px;
   padding:12px;
-  border-radius:6px;
-  width:280px;
   z-index:999;
+  border-radius:6px;
   box-shadow:0 3px 8px rgba(0,0,0,.3);
   font-size:13px;
 }
 
-.panel h3 { font-size:14px; margin:8px 0; }
-.scroll { max-height:130px; overflow-y:auto; border:1px solid #ccc; padding:5px; }
+.panel h3 { margin:8px 0; font-size:14px; }
+.scroll { max-height:120px; overflow:auto; border:1px solid #ccc; padding:5px; }
+
+input[type=text] { width:100%; padding:5px; margin-bottom:6px; }
 
 button {
   width:100%;
-  margin-top:5px;
+  margin-top:6px;
   padding:6px;
   cursor:pointer;
 }
-.contador {
+
+.contador { font-weight:bold; color:#067; margin-top:5px; }
+
+.resumen {
   margin-top:6px;
-  font-weight:bold;
-  color:#0a4;
+  font-size:12px;
+  max-height:90px;
+  overflow:auto;
+  border-top:1px solid #ddd;
 }
 </style>
 </head>
@@ -45,8 +52,11 @@ button {
 <body>
 
 <div class="panel">
+  <h3>🔎 Buscar cliente / código</h3>
+  <input type="text" id="buscador" placeholder="Código o nombre...">
+
   <h3>🏙 Distritos</h3>
-  <div class="scroll" id="distritos"></div>
+  <div class="scroll" id="listaDistritos"></div>
 
   <h3>📅 Frecuencia</h3>
   <label><input type="checkbox" value="L"> L</label>
@@ -57,9 +67,11 @@ button {
   <label><input type="checkbox" value="S"> S</label>
 
   <button onclick="soloHoy()">📍 SOLO HOY</button>
-  <button onclick="exportar()">📊 EXPORTAR FILTRADO</button>
+  <button onclick="exportar()">📊 EXPORTAR</button>
 
   <div class="contador" id="contador"></div>
+  <div class="resumen" id="resumen"></div>
+
   <small>Uso Comercial | Fuente: Distribución</small>
 </div>
 
@@ -70,109 +82,118 @@ const map = L.map('map').setView([-12.05, -77.03], 12);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
 const capa = L.layerGroup().addTo(map);
+const rutas = L.layerGroup().addTo(map);
+
 let tiendas = [];
 let visibles = [];
 let colores = {};
 let colorIndex = 0;
-
-const palette = ["red","blue","green","orange","violet","gold","grey","black"];
+const palette = ['red','blue','green','orange','violet','gold','black','grey'];
 
 function colorDistrito(d) {
-  if (!colores[d]) {
-    colores[d] = palette[colorIndex % palette.length];
-    colorIndex++;
-  }
+  if (!colores[d]) colores[d] = palette[colorIndex++ % palette.length];
   return colores[d];
 }
 
 function icono(color) {
   return L.icon({
     iconUrl:`https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-${color}.png`,
-    shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+    shadowUrl:'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
     iconSize:[25,41], iconAnchor:[12,41]
   });
 }
 
-function limpiarFreq(f) {
-  return (f || "").replaceAll("/", "");
-}
+function limpiarFreq(f){ return (f||'').replaceAll('/',''); }
 
 Papa.parse("ATE 1.csv", {
   download:true,
   header:true,
   complete:(res)=>{
     tiendas = res.data
-      .filter(t => t.LATITUT && t.LONGITUTD)
-      .map(t => ({
-  codigo: t["Customer Account # / Cliente"], // ✅ CÓDIGO CLIENTE
-  nombre: t["Customer Name/Solic"],
-  distrito: t.City,
-  direccion: t.Calle,
-  freq: limpiarFreq(t.FRECUENCIA),
-  lat: +t.LATITUT,
-  lng: +t.LONGITUTD
-}));
-``
-    crearDistritos();
+      .filter(t=>t.LATITUT && t.LONGITUTD)
+      .map(t=>({
+        codigo: t["Customer Account # / Cliente"],
+        nombre: t["Customer Name/Solic"],
+        distrito: t.City,
+        direccion: t.Calle,
+        freq: limpiarFreq(t.FRECUENCIA),
+        lat:+t.LATITUT, lng:+t.LONGITUTD
+      }));
+    cargarDistritos();
     aplicarFiltros();
   }
 });
 
-function crearDistritos() {
-  const cont = document.getElementById("distritos");
+function cargarDistritos(){
+  const cont=document.getElementById("listaDistritos");
   [...new Set(tiendas.map(t=>t.distrito))].sort().forEach(d=>{
-    cont.innerHTML += `<label><input type="checkbox" checked value="${d}"> ${d}</label><br>`;
+    cont.innerHTML+=`<label><input type="checkbox" checked value="${d}"> ${d}</label><br>`;
   });
   cont.querySelectorAll("input").forEach(i=>i.onchange=aplicarFiltros);
-  document.querySelectorAll(".panel input[value]").forEach(i=>i.onchange=aplicarFiltros);
+  document.querySelectorAll("input[type=checkbox]").forEach(i=>i.onchange=aplicarFiltros);
+  document.getElementById("buscador").oninput=aplicarFiltros;
 }
 
-function aplicarFiltros() {
-  const dist = [...document.querySelectorAll("#distritos input:checked")].map(i=>i.value);
+function aplicarFiltros(){
+  const dist = [...document.querySelectorAll("#listaDistritos input:checked")].map(i=>i.value);
   const dias = [...document.querySelectorAll(".panel input[value=L],.panel input[value=M],.panel input[value=X],.panel input[value=J],.panel input[value=V],.panel input[value=S]")]
     .filter(i=>i.checked).map(i=>i.value);
+  const texto = document.getElementById("buscador").value.toLowerCase();
 
-  visibles = tiendas.filter(t => dist.includes(t.distrito));
-  if (dias.length)
-    visibles = visibles.filter(t => dias.some(d=>t.freq.includes(d)));
+  visibles = tiendas.filter(t =>
+    dist.includes(t.distrito) &&
+    (!dias.length || dias.some(d=>t.freq.includes(d))) &&
+    (!texto || (t.codigo+t.nombre).toLowerCase().includes(texto))
+  );
 
-  pintar(visibles);
+  pintar();
 }
 
-function pintar(data) {
+function pintar(){
   capa.clearLayers();
-  data.forEach(t=>{
-    L.marker([t.lat,t.lng], {icon:icono(colorDistrito(t.distrito))})
+  rutas.clearLayers();
+  const resumen = {};
+
+  visibles.forEach(t=>{
+    resumen[t.distrito]=(resumen[t.distrito]||0)+1;
+
+    L.marker([t.lat,t.lng],{icon:icono(colorDistrito(t.distrito))})
       .bindPopup(`
-  <b>${t.nombre}</b><br>
-  <b>Código cliente:</b> ${t.codigo}<br>
-  <b>Distrito:</b> ${t.distrito}<br>
-  <b>Frecuencia:</b> ${t.freq}<br>
-  ${t.direccion}
-`)
+        <b>${t.nombre}</b><br>
+        <b>Código:</b> ${t.codigo}<br>
+        <b>Distrito:</b> ${t.distrito}<br>
+        <b>Frecuencia:</b> ${t.freq}<br>
+        ${t.direccion}
+      `)
       .addTo(capa);
   });
-  document.getElementById("contador").innerText = `Tiendas visibles: ${data.length}`;
+
+  document.getElementById("contador").innerText=`Tiendas visibles: ${visibles.length}`;
+
+  let h="";
+  for (const d in resumen) h+=`${d}: ${resumen[d]}<br>`;
+  document.getElementById("resumen").innerHTML=h;
 }
 
-function soloHoy() {
-  const dias = ["D","L","M","X","J","V","S"];
-  const hoy = dias[new Date().getDay()];
-  document.querySelectorAll(".panel input[value]").forEach(i=>i.checked = i.value===hoy);
+function soloHoy(){
+  const dias=["D","L","M","X","J","V","S"];
+  const hoy=dias[new Date().getDay()];
+  document.querySelectorAll(".panel input[value]").forEach(i=>i.checked=i.value===hoy);
   aplicarFiltros();
 }
 
-function exportar() {
-  let csv = "Nombre,Distrito,Frecuencia,Direccion\n";
+function exportar(){
+  let csv="Codigo,Nombre,Distrito,Frecuencia,Direccion\n";
   visibles.forEach(t=>{
-    csv += `"${t.nombre}","${t.distrito}","${t.freq}","${t.direccion}"\n`;
+    csv+=`"${t.codigo}","${t.nombre}","${t.distrito}","${t.freq}","${t.direccion}"\n`;
   });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"}));
-  a.download = "tiendas_filtradas.csv";
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+  a.download="tiendas_filtradas.csv";
   a.click();
 }
 </script>
 
 </body>
 </html>
+``
