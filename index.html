@@ -86,6 +86,24 @@ button {
   border-radius: 4px;
   padding: 2px 4px;
 }
+  #leyenda {
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.item-leyenda {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+``
 </style>
 </head>
 
@@ -103,6 +121,8 @@ button {
 
   <div class="contador" id="contador"></div>
   <div class="resumen" id="resumen"></div>
+<h3>🎨 Leyenda de distritos</h3>
+<div id="leyenda"></div>
 
   <small>Uso Comercial | Fuente: Distribución</small>
 </div>
@@ -219,6 +239,30 @@ function pintar(){
   let h="";
   for (const d in resumen) h+=`${d}: ${resumen[d]}<br>`;
   document.getElementById("resumen").innerHTML=h;
+  // 🎨 LEYENDA DE COLORES POR DISTRITO
+  const leyendaDiv = document.getElementById("leyenda");
+  if (leyendaDiv) {
+    leyendaDiv.innerHTML = "";
+
+    Object.keys(resumen).forEach(distrito => {
+      const color = colorDistrito(distrito);
+
+      const item = document.createElement("div");
+      item.className = "item-leyenda";
+
+      const dot = document.createElement("div");
+      dot.className = "color-dot";
+      dot.style.backgroundColor = color;
+
+      const text = document.createElement("span");
+      text.textContent = distrito;
+
+      item.appendChild(dot);
+      item.appendChild(text);
+      leyendaDiv.appendChild(item);
+    });
+  }
+``
 }
 
 function soloHoy(){
