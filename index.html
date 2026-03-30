@@ -14,9 +14,8 @@
   padding: 2px 4px;
 }
 <style>
-```css
 body { margin:0; font-family: Arial, sans-serif; }
-  
+
 #map {
   position: fixed;
   top: 0;
@@ -49,7 +48,13 @@ body { margin:0; font-family: Arial, sans-serif; }
 }
 
 .panel h3 { margin:8px 0; font-size:14px; }
-.scroll { max-height:120px; overflow:auto; border:1px solid #ccc; padding:5px; }
+
+.scroll {
+  max-height:120px;
+  overflow:auto;
+  border:1px solid #ccc;
+  padding:5px;
+}
 
 input[type=text] {
   width:100%;
@@ -72,6 +77,14 @@ button {
   max-height:90px;
   overflow:auto;
   border-top:1px solid #ddd;
+}
+
+/* ✅ RESALTADO DEL DÍA ACTUAL */
+.dia-hoy {
+  font-weight: bold;
+  background: #e6f2ff;
+  border-radius: 4px;
+  padding: 2px 4px;
 }
 </style>
 </head>
@@ -97,12 +110,12 @@ button {
 <div class="panel panel-frecuencia">
   <h3>📅 Frecuencia</h3>
 
-  <label><input type="checkbox" value="L"> Lunes</label><br>
-  <label><input type="checkbox" value="M"> Martes</label><br>
-  <label><input type="checkbox" value="X"> Miércoles</label><br>
-  <label><input type="checkbox" value="J"> Jueves</label><br>
+  <label data-dia="L"><input type="checkbox" value="L"> Lunes</label><br>
+  <label data-dia="M"><input type="checkbox" value="M"> Martes</label><br>
+  <label data-dia="X"><input type="checkbox" value="X"> Miércoles</label><br>
+  <label data-dia="J"><input type="checkbox" value="J"> Jueves</label><br>
   <label data-dia="V"><input type="checkbox" value="V"> Viernes</label><br>
-  <label><input type="checkbox" value="S"> Sábado</label><br>
+  <label data-dia="S"><input type="checkbox" value="S"> Sábado</label><br>
 
   <button onclick="soloHoy()">📍 SOLO HOY</button>
 </div>
